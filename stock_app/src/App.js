@@ -6,9 +6,12 @@ import {CategoryScale} from 'chart.js/auto';
 function App() {
   const [apiData, setApiData] = useState({});
   const [company, setCompany] = useState('AA');
+  const [dataRange, setDataRange] = useState({first: '2022-05-26', second: '2023-05-26'});
+  const [favCompanies, setFavCompanies] = useState([]);
+  const [fav, setFav] = useState('transparent');
 
   const apiKey = "pQ705m_KgSNXmgtmyQXKBfufdnIrMPOa";
-  const apiUrl = `https://api.polygon.io/v2/aggs/ticker/${company}/range/1/day/2022-01-01/2023-01-01?apiKey=${apiKey}`;
+  const apiUrl = `https://api.polygon.io/v2/aggs/ticker/${company}/range/1/day/${dataRange.first}/${dataRange.second}?apiKey=${apiKey}`;
 
   useEffect(() => {
     fetch(apiUrl)
@@ -18,21 +21,59 @@ function App() {
 
   const inputHandler = (e) => {
     setCompany(e.target.value);
+    if(!favCompanies.filter((comp) => comp === e.target.value).length > 0) {
+      setFav("transparent");
+    }
+    else {
+      setFav("dodgerblue");
+    }
   }
 
   const apiDt = (i) => {
     return apiData.results[i];
   }
 
+  const addFavCompany = () => {
+    if(!(favCompanies.filter((comp) => comp === company ).length > 0)) {
+      setFavCompanies([...favCompanies, company]);
+      setFav("dodgerblue");
+    }
+    else {
+      console.log("Already added");
+    }
+  }
+
+  const showFavCompany = (e) => {
+    setCompany(e.target.value);
+    setFav("dodgerblue");
+  }
+
   return (
    <div className="flex flex-col items-center bg-[#0e0d31] h-[100vh] w-[100vw]">
       <input value={company} placeholder="Enter..." className="h-[40px] w-[50%] p-2 outline-none rounded-lg mt-6" onChange={inputHandler}></input>
-      
+
       {apiData.results ? (
-        <div>
-          <StockChart chartData={{
-                  labels : ["January", "January", "February", "February", "March", "March", "April", "April", "May", "May", "June", "June", "July", "July", 
-                  "August", "August", "September", "September", "Ocober", "Ocober", "November", "November", "December", "December"], 
+        <div className="flex m-14">
+          <div>
+            <div className="relative flex flex-col items-center h-[130px] text-white w-[200px] border-2 rounded-lg mr-12">
+              <div className="flex  mt-4">
+                <button onClick={() => setDataRange({...dataRange, first: '2022-05-26'})} className="bg-transparent w-[50px] font-semibold border-2 border-blue-400 rounded-md">1</button>
+                <button onClick={() => setDataRange({...dataRange, first: '2021-05-26'})} className="bg-transparent w-[50px] font-semibold border-2 mx-2 border-blue-400 rounded-md">2</button>
+                <button onClick={() => setDataRange({...dataRange, first: '2019-05-26'})} className="bg-transparent w-[50px] font-semibold border-2 border-blue-400 rounded-md">4</button>
+              </div>
+              <hr className="border mt-5 w-[80%]"></hr>
+              <h1 className="font-bold text-white mt-3 text-2xl">{company}</h1>
+              <button className="absolute right-5 bottom-6 rotate-45 w-[15px] h-[15px] border-2 border-blue-500" style={{backgroundColor: fav}} onClick={addFavCompany}></button>
+            </div>
+
+            <div className="flex flex-col items-center justify-center h-[350px] text-white w-[200px] mt-10 border-2 rounded-lg mr-12">
+            {favCompanies.map((p) => <button onClick={showFavCompany} value={p} className="border-2 border-blue-400 w-[70%] p-2 m-3 rounded-md ">{p}</button> )}
+            </div>
+          </div>
+
+          <StockChart firstRange={dataRange.first} secondRange={dataRange.second} chartData={{
+                  labels : ["1/24","2/24","3/24","4/24","5/24","6/24","7/24","8/24","9/24","10/24","11/24","12/24",
+                  "13/24","14/24","15/24","16/24","17/24","18/24","19/24","20/24","21/24","22/24","23/24","24/24"],
                           
                   datasets: [
                       {
@@ -60,8 +101,8 @@ function App() {
             }}/>
         </div>
       ) : (
-          <div>S</div>
-      )};
+          <div className="text-white tracking-[6px] text-4xl">...</div>
+      )}
     </div>
   );
 }
